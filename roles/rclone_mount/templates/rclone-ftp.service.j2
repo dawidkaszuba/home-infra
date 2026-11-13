@@ -1,0 +1,19 @@
+[Unit]
+Description=Rclone mount FTP
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User={{ rclone_user }}
+Group={{ rclone_user }}
+ExecStart=/usr/bin/rclone mount {{ rclone_remote_name }}: {{ rclone_mount_path }} \
+  --config {{ rclone_conf_file }} \
+  --vfs-cache-mode writes \
+  --allow-other
+ExecStop=/bin/fusermount -uz {{ rclone_mount_path }}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

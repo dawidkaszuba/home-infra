@@ -1,0 +1,26 @@
+#!/bin/bash
+set -euo pipefail
+
+BACKUP_DIR="{{ postgres_backup_dir }}"
+TMP_DIR="{{ postgres_backup_tmp_dir }}"
+DATE="$(date +%F_%H-%M-%S)"
+DB_NAME="{{ postgres_db_name }}"
+BACKUP_FILE="${TMP_DIR}/${DB_NAME}-${DATE}.sql.gz"
+
+mkdir -p "${BACKUP_DIR}" "${TMP_DIR}"
+
+pg_dump \
+  --no-password \
+  -h "{{ postgres_host }}" \
+  -p "{{ postgres_port }}" \
+  -U "{{ postgres_db_user }}" \
+  "{{ postgres_db_name }}" | gzip > "${BACKUP_FILE}"
+
+rclone copy \
+  "${BACKUP_FILE}" \
+  "{{ rclone_remote_name }}:{{ rclone_remote_path }}" \
+  --config "{{ rclone_config_file }}" \
+  --no-update-modtime
+
+find "${BACKUP_DIR}" -maxdepth 1 -type f -name "*.sql.gz" -mtime +{{ postgres_backup_keep_days }} -delete || true
+find "${TMP_DIR}" -maxdepth 1 -type f -name "*.sql.gz" -mtime +1 -delete || true

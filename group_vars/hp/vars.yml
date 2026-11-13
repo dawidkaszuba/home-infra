@@ -1,0 +1,7 @@
+rclone_user: rclone_user
+rclone_remote_name: ftp107
+rclone_mount_path: /mnt/ftp107
+rclone_conf_dir: "/home/{{ rclone_user }}/.config/rclone"
+rclone_conf_file: "/home/{{ rclone_user }}/.config/rclone/rclone.conf"
+
+ftp_tls: false

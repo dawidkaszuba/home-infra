@@ -1,0 +1,4 @@
+- hosts: fujitsu
+  become: true
+  roles:
+    - postgres_backup

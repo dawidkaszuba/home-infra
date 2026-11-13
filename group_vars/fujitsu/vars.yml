@@ -1,0 +1,15 @@
+postgres_backup_user: rclone_user
+postgres_backup_group: rclone_user
+
+postgres_backup_dir: /var/backups/postgres
+postgres_backup_tmp_dir: /var/backups/postgres/tmp
+postgres_backup_keep_days: 7
+
+postgres_host: 127.0.0.1
+postgres_port: 5432
+
+rclone_config_file: /home/rclone_user/.config/rclone/rclone.conf
+rclone_remote_name: ftp107
+rclone_remote_path: "postgres/{{ inventory_hostname }}"
+
+postgres_backup_schedule: "*-*-* 02:30:00"

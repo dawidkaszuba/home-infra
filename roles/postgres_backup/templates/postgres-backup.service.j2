@@ -1,0 +1,10 @@
+[Unit]
+Description=PostgreSQL backup to FTP via rclone
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User={{ postgres_backup_user }}
+Group={{ postgres_backup_group }}
+ExecStart=/usr/local/bin/postgres-backup.sh

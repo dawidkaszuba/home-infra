@@ -1,0 +1,55 @@
+- name: Create rclone user
+  user:
+    name: rclone_user
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: Install rclone
+  apt:
+    name: rclone
+    update_cache: true
+    state: present
+
+- name: Create mount dir
+  file:
+    path: "{{ rclone_mount_path }}"
+    state: directory
+    owner: "{{ rclone_user }}"
+    group: "{{ rclone_user }}"
+    mode: "0755"
+
+- name: Ensure config dir exists
+  file:
+    path: "{{ rclone_conf_dir }}"
+    state: directory
+    owner: "{{ rclone_user }}"
+    group: "{{ rclone_user }}"
+    mode: "0700"
+
+- name: Copy rclone config
+  template:
+    src: rclone.conf.j2
+    dest: "{{ rclone_conf_file }}"
+    owner: "{{ rclone_user }}"
+    group: "{{ rclone_user }}"
+    mode: "0600"
+
+- name: Enable user_allow_other in fuse.conf
+  lineinfile:
+    path: /etc/fuse.conf
+    regexp: '^#?user_allow_other'
+    line: 'user_allow_other'
+
+- name: Install systemd unit
+  template:
+    src: rclone-ftp.service.j2
+    dest: /etc/systemd/system/rclone-ftp.service
+  notify: Reload systemd
+
+- name: Enable and start service
+  systemd:
+    name: rclone-ftp.service
+    enabled: true
+    state: started
+    daemon_reload: true

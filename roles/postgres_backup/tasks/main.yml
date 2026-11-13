@@ -1,0 +1,59 @@
+- name: Install required packages
+  apt:
+    name:
+      - postgresql-client
+      - rclone
+    state: present
+    update_cache: true
+
+- name: Ensure backup directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ postgres_backup_user }}"
+    group: "{{ postgres_backup_group }}"
+    mode: "0750"
+  loop:
+    - "{{ postgres_backup_dir }}"
+    - "{{ postgres_backup_tmp_dir }}"
+
+- name: Install .pgpass for postgres user
+  template:
+    src: pgpass.j2
+    dest: "/home/rclone_user/.pgpass"
+    owner: "{{ postgres_backup_user }}"
+    group: "{{ postgres_backup_group }}"
+    mode: "0600"
+
+- name: Install backup script
+  template:
+    src: postgres-backup.sh.j2
+    dest: /usr/local/bin/postgres-backup.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install systemd service
+  template:
+    src: postgres-backup.service.j2
+    dest: /etc/systemd/system/postgres-backup.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Install systemd timer
+  template:
+    src: postgres-backup.timer.j2
+    dest: /etc/systemd/system/postgres-backup.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Enable and start timer
+  systemd:
+    name: postgres-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: true
